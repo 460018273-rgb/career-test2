@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 职场本命人格确诊报告</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans SC', sans-serif; background: #0b1120; color: #e2e8f0; }
+        .glass-panel { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        /* 增加海报生成时的样式修正 */
+        #poster-container { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden bg-slate-900">
+    
+    <header class="relative z-10 h-14 flex items-center justify-between px-6 border-b border-white/5 bg-slate-900/50">
+        <div class="font-black text-lg text-blue-500">MIND_LAB</div>
+        <div class="text-xs text-slate-500">v5.0 Viral</div>
+    </header>
+
+    <main class="relative z-10 flex-1 flex flex-col items-center justify-center p-4">
+        
+        <div id="start-screen" class="text-center space-y-8 max-w-lg">
+            <h1 class="text-5xl font-black text-white leading-tight">测测你的<br><span class="text-blue-500">职场出厂设置</span></h1>
+            <p class="text-slate-400">Gallup优势算法 × MBTI内核</p>
+            <button onclick="startQuiz()" class="px-10 py-4 bg-blue-600 text-white rounded-full font-bold shadow-lg shadow-blue-600/30">立即确诊</button>
+        </div>
+
+        <div id="quiz-screen" class="hidden w-full max-w-xl h-[70vh] flex flex-col glass-panel rounded-2xl overflow-hidden">
+            <div class="w-full bg-slate-800 h-1"><div id="progress-bar" class="bg-blue-500 h-full transition-all duration-300" style="width: 0%"></div></div>
+            <div class="flex-1 overflow-y-auto p-8">
+                <div class="text-xs text-blue-400 font-mono mb-4">QUESTION <span id="q-index">1</span></div>
+                <h2 id="q-text" class="text-2xl font-bold text-white mb-8">...</h2>
+                <div class="space-y-4">
+                    <button onclick="selectOption('A')" class="w-full p-4 text-left border border-white/10 rounded-xl hover:bg-white/5 text-slate-200 transition-all"><span class="text-xs text-slate-500 block mb-1">A</span><span id="text-a">...</span></button>
+                    <button onclick="selectOption('B')" class="w-full p-4 text-left border border-white/10 rounded-xl hover:bg-white/5 text-slate-200 transition-all"><span class="text-xs text-slate-500 block mb-1">B</span><span id="text-b">...</span></button>
+                </div>
+            </div>
+        </div>
+
+        <div id="result-screen" class="hidden absolute inset-0 bg-slate-900 z-50 overflow-y-auto">
+            <div class="min-h-screen flex items-center justify-center p-4">
+                
+                <div id="poster-node" class="relative w-full max-w-md bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+                    
+                    <div id="poster-container" class="p-8 pb-10 relative">
+                        <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                        <div class="flex gap-2 mb-6">
+                            <span id="res-mbti" class="px-2 py-1 bg-white/10 text-white text-xs font-bold rounded">...</span>
+                            <span id="res-zodiac" class="px-2 py-1 bg-white/10 text-yellow-300 text-xs font-bold rounded">...</span>
+                        </div>
+
+                        <h1 class="text-4xl font-black text-white mb-2"><span id="res-title">...</span></h1>
+                        <p id="res-subtitle" class="text-lg text-blue-400 mb-6">...</p>
+
+                        <div class="w-full aspect-square max-w-[200px] mx-auto mb-6">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+
+                        <div class="bg-white/5 p-4 rounded-xl border-l-4 border-blue-500 mb-6">
+                            <p id="res-quote" class="text-white text-sm italic">...</p>
+                        </div>
+
+                        <div class="flex items-center justify-between border-t border-white/10 pt-4 mt-4">
+                            <div class="text-left">
+                                <div class="text-sm font-bold text-white">扫码确诊你的</div>
+                                <div class="text-xs text-slate-400">2026 职场本命人格</div>
+                            </div>
+                            <div id="qrcode" class="p-1 bg-white rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <div id="save-mask" class="absolute inset-0 bg-black/80 flex flex-col items-center justify-center z-50 hidden text-center p-6">
+                        <img id="final-image" src="" class="w-full rounded-xl shadow-2xl mb-4 border-4 border-white/20">
+                        <p class="text-white font-bold text-lg animate-bounce">👆 长按上方图片保存 👆</p>
+                        <p class="text-slate-400 text-sm mt-2">发朋友圈邀请朋友来测</p>
+                        <button onclick="closeMask()" class="mt-6 px-6 py-2 bg-white/10 text-white rounded-full text-sm">关闭预览</button>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="fixed bottom-8 left-0 right-0 flex justify-center gap-4 z-40">
+                <button onclick="location.reload()" class="px-6 py-3 bg-slate-800 text-white rounded-full font-bold shadow-lg">再测一次</button>
+                <button onclick="generatePoster()" class="px-8 py-3 bg-blue-600 text-white rounded-full font-bold shadow-lg shadow-blue-600/40">生成分享海报</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ----------------------------------------------------
+        // 核心逻辑区 (数据部分直接复用之前的，这里只写生成海报的新逻辑)
+        // ----------------------------------------------------
+        
+        // 此处填入之前完整的 questions 数组 和 profiles 对象
+        // 为了演示，我只写一个简版数据，请务必把之前 V2 版那个长长的 questions 数组复制回来！
+        const questions = [
+            { q: "测试题1：老板画饼？", a: {t: "吃不下", v: "T"}, b: {t: "假装吃", v: "R"} },
+            { q: "测试题2：周末加班？", a: {t: "不去", v: "E"}, b: {t: "去混饭", v: "I"} }
+            // ... 请复制 V2 版本的完整25题 ...
+        ];
+        const profiles = {
+            "T_E": { title: "高冷操盘手", subtitle: "战略大脑 × 暴力执行", mbti: "INTJ", zodiac: "摩羯座", quote: "别跟我谈感情，直接看数据。" },
+            "T_I": { title: "画饼艺术家", subtitle: "战略 × 社交", mbti: "ENTJ", zodiac: "狮子座", quote: "听我的，这事儿能成。" },
+            // ... 请复制 V2 版本的完整 profiles ...
+            "default": { title: "全能打工人", subtitle: "六边形战士", mbti: "ISTJ", zodiac: "金牛座", quote: "打工魂，人上人。" } 
+        };
+
+        let step = 0;
+        let scores = { "T": 0, "E": 0, "I": 0, "R": 0 };
+
+        function startQuiz() { document.getElementById('start-screen').classList.add('hidden'); document.getElementById('quiz-screen').classList.remove('hidden'); renderQ(); }
+        function renderQ() {
+            if (step >= questions.length) { showResult(); return; } // 防止越界
+            const q = questions[step];
+            document.getElementById('q-index').innerText = step + 1;
+            document.getElementById('q-text').innerText = q.q;
+            document.getElementById('text-a').innerText = q.a.t;
+            document.getElementById('text-b').innerText = q.b.t;
+            document.getElementById('progress-bar').style.width = ((step + 1) / questions.length * 100) + '%';
+        }
+        function selectOption(choice) {
+            // 简单计分逻辑演示
+            const val = choice === 'A' ? questions[step].a.v : questions[step].b.v;
+            scores[val]++;
+            step++;
+            renderQ();
+        }
+
+        function showResult() {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+
+            // 简单算出最高分逻辑
+            const sorted = Object.entries(scores).sort((a,b) => b[1]-a[1]);
+            let key = `${sorted[0][0]}_${sorted[1][0]}`;
+            if(!profiles[key]) key = `${sorted[1][0]}_${sorted[0][0]}`;
+            const res = profiles[key] || profiles["default"];
+
+            // 填充文字
+            document.getElementById('res-title').innerText = res.title;
+            document.getElementById('res-subtitle').innerText = res.subtitle;
+            document.getElementById('res-mbti').innerText = res.mbti;
+            document.getElementById('res-zodiac').innerText = res.zodiac;
+            document.getElementById('res-quote').innerText = res.quote;
+
+            // 1. 渲染图表
+            new Chart(document.getElementById('radarChart'), {
+                type: 'radar',
+                data: {
+                    labels: ['战略', '执行', '社交', '共情'],
+                    datasets: [{ data: [scores.T, scores.E, scores.I, scores.R], borderColor: '#60a5fa', backgroundColor: 'rgba(96, 165, 250, 0.4)', borderWidth: 1, pointRadius: 0 }]
+                },
+                options: {
+                    scales: { r: { angleLines: {color:'rgba(255,255,255,0.1)'}, grid: {color:'rgba(255,255,255,0.1)'}, ticks:{display:false}, pointLabels:{color:'#fff', font:{size:10}} } },
+                    plugins: { legend: {display:false} }
+                }
+            });
+
+            // 2. 生成裂变二维码 (指向当前页面的 URL)
+            // 实际部署后，这里会自动获取浏览器里的当前网址
+            const currentUrl = window.location.href; 
+            document.getElementById('qrcode').innerHTML = "";
+            new QRCode(document.getElementById("qrcode"), {
+                text: currentUrl,
+                width: 60,
+                height: 60,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+
+        // --- 核心：海报生成逻辑 ---
+        function generatePoster() {
+            const dom = document.getElementById('poster-node');
+            
+            // 临时调整样式以保证截图清晰
+            window.scrollTo(0,0); 
+            
+            html2canvas(dom, {
+                backgroundColor: null, // 透明背景
+                scale: 2, // 2倍清晰度
+                useCORS: true // 允许跨域图片(如果有)
+            }).then(canvas => {
+                // 转成图片
+                const imgData = canvas.toDataURL('image/png');
+                
+                // 显示遮罩层
+                document.getElementById('final-image').src = imgData;
+                document.getElementById('save-mask').classList.remove('hidden');
+                document.getElementById('save-mask').classList.add('flex');
+            });
+        }
+
+        function closeMask() {
+            document.getElementById('save-mask').classList.add('hidden');
+            document.getElementById('save-mask').classList.remove('flex');
+        }
+    </script>
+</body>
+</html>
